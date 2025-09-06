@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>JobHunter Real Data Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .test-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+      transition: background 0.3s;
+    }
+    .test-btn:hover {
+      background: #5a6fd8;
+    }
+    .success { background: #48bb78; }
+    .warning { background: #ed8936; }
+    .danger { background: #f56565; }
+    
+    #results {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f7fafc;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .status.good { background: #c6f6d5; color: #22543d; }
+    .status.bad { background: #fed7d7; color: #c53030; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>JobHunter Real Data Test</h1>
+    <p>This will test if the extension can capture real job application data from LinkedIn.</p>
+
+    <div style="margin: 20px 0; padding: 15px; background: #fff5cd; border-left: 4px solid #ed8936; border-radius: 4px;">
+      <strong>Instructions:</strong>
+      <ol>
+        <li>Open LinkedIn Jobs in another tab</li>
+        <li>Apply to a real job (manually, not auto-apply)</li>
+        <li>Come back here and click "Check for Real Data"</li>
+        <li>The extension should have captured your manual application</li>
+      </ol>
+    </div>
+
+    <button class="test-btn success" id="addRealApplicationBtn">Simulate Real Application</button>
+    <button class="test-btn" id="checkRealDataBtn">Check for Real Data</button>
+    <button class="test-btn warning" id="enableRealModeBtn">Enable Real Capture Mode</button>
+    <button class="test-btn danger" id="clearAllBtn">Clear All Data</button>
+
+    <div id="results">Click buttons to test real data capture...</div>
+  </div>
+
+  <script>
+    console.log('Real data test page loaded');
+
+    async function simulateRealApplication() {
+      try {
+        console.log('Simulating real application...');
+        
+        // Create a realistic application entry
+        const realApplication = {
+          id: Date.now().toString(),
+          jobTitle: 'Senior Software Engineer',
+          company: 'Real Company Inc',
+          platform: 'linkedin',
+          status: 'applied',
+          appliedAt: new Date().toISOString(),
+          matchScore: 0.89,
+          url: 'https://linkedin.com/jobs/view/real-job-123',
+          notes: 'Applied manually via LinkedIn Easy Apply',
+          source: 'manual_application',
+          realApplication: true
+        };
+
+        // Get existing data
+        const result = await chrome.storage.local.get(['jobHunterData']);
+        const data = result.jobHunterData || {
+          applications: [],
+          settings: {},
+          userProfile: {},
+          stats: { totalApplications: 0, todayApplications: 0, responseRate: 0, interviewsScheduled: 0 }
+        };
+
+        // Add real application
+        data.applications.push(realApplication);
+        data.stats.totalApplications = data.applications.length;
+        data.stats.todayApplications = data.applications.filter(app => {
+          const today = new Date().toDateString();
+          const appDate = new Date(app.appliedAt).toDateString();
+          return today === appDate;
+        }).length;
+
+        await chrome.storage.local.set({ jobHunterData: data });
+        
+        document.getElementById('results').textContent = 
+          'Real application simulated successfully!\n' + 
+          JSON.stringify(realApplication, null, 2);
+
+      } catch (error) {
+        console.error('Error simulating real application:', error);
+        document.getElementById('results').textContent = 'Error: ' + error.message;
+      }
+    }
+
+    async function checkForRealData() {
+      try {
+        console.log('Checking for real application data...');
+        const result = await chrome.storage.local.get(['jobHunterData']);
+        
+        if (!result.jobHunterData || !result.jobHunterData.applications) {
+          document.getElementById('results').textContent = 'No application data found.';
+          return;
+        }
+
+        const applications = result.jobHunterData.applications;
+        const realApps = applications.filter(app => app.realApplication || app.source === 'manual_application');
+        const sampleApps = applications.filter(app => !app.realApplication && app.source !== 'manual_application');
+
+        let output = `ANALYSIS RESULTS:\n\n`;
+        output += `Total Applications: ${applications.length}\n`;
+        output += `Real Applications: ${realApps.length}\n`;
+        output += `Sample/Demo Applications: ${sampleApps.length}\n\n`;
+
+        if (realApps.length > 0) {
+          output += 'REAL APPLICATIONS FOUND:\n';
+          realApps.forEach((app, index) => {
+            output += `${index + 1}. ${app.jobTitle} at ${app.company} (${app.platform})\n`;
+            output += `   Applied: ${new Date(app.appliedAt).toLocaleString()}\n`;
+            output += `   Status: ${app.status}\n\n`;
+          });
+        } else {
+          output += 'NO REAL APPLICATIONS FOUND.\n';
+          output += 'This means the extension is not capturing real job application data.\n';
+          output += 'Only demo/sample data is present.\n\n';
+        }
+
+        output += '\nFULL DATA:\n';
+        output += JSON.stringify(result.jobHunterData, null, 2);
+
+        document.getElementById('results').textContent = output;
+
+      } catch (error) {
+        console.error('Error checking real data:', error);
+        document.getElementById('results').textContent = 'Error: ' + error.message;
+      }
+    }
+
+    async function enableRealCaptureMode() {
+      try {
+        console.log('Enabling real capture mode...');
+        
+        const result = await chrome.storage.local.get(['jobHunterData']);
+        const data = result.jobHunterData || {};
+        
+        // Enable real capture settings
+        if (!data.settings) data.settings = {};
+        data.settings.autoApplyEnabled = true;
+        data.settings.smartFilterEnabled = true;
+        data.settings.realCaptureMode = true;
+        data.settings.dailyLimit = 5; // Start with low limit
+        
+        await chrome.storage.local.set({ jobHunterData: data });
+        
+        document.getElementById('results').textContent = 
+          'Real capture mode enabled!\n\n' +
+          'Settings updated:\n' +
+          '- Auto Apply: ON\n' +
+          '- Smart Filtering: ON\n' +
+          '- Daily Limit: 5 applications\n' +
+          '- Real Capture Mode: ON\n\n' +
+          'Now go to LinkedIn and try applying to jobs. The extension should capture real data.';
+
+      } catch (error) {
+        console.error('Error enabling real mode:', error);
+        document.getElementById('results').textContent = 'Error: ' + error.message;
+      }
+    }
+
+    async function clearAllData() {
+      if (!confirm('Are you sure you want to clear ALL extension data?')) {
+        return;
+      }
+
+      try {
+        await chrome.storage.local.clear();
+        document.getElementById('results').textContent = 'All data cleared successfully!';
+      } catch (error) {
+        console.error('Error clearing data:', error);
+        document.getElementById('results').textContent = 'Error: ' + error.message;
+      }
+    }
+
+    // Event listeners
+    document.getElementById('addRealApplicationBtn').addEventListener('click', simulateRealApplication);
+    document.getElementById('checkRealDataBtn').addEventListener('click', checkForRealData);
+    document.getElementById('enableRealModeBtn').addEventListener('click', enableRealCaptureMode);
+    document.getElementById('clearAllBtn').addEventListener('click', clearAllData);
+
+    // Auto-check on load
+    checkForRealData();
+  </script>
+</body>
+</html>
