@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 400px;
+      min-height: 500px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+    }
+    
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #4a5568;
+      margin-bottom: 5px;
+    }
+    
+    .subtitle {
+      font-size: 12px;
+      color: #718096;
+    }
+    
+    .content {
+      padding: 20px;
+      background: white;
+    }
+    
+    .status-card {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      padding: 15px;
+      border-radius: 10px;
+      color: white;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .status-number {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .status-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-item {
+      background: #f7fafc;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      border-left: 4px solid #4299e1;
+    }
+    
+    .stat-number {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2d3748;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: #718096;
+      margin-top: 2px;
+    }
+    
+    .controls {
+      margin-bottom: 20px;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #4a5568;
+    }
+    
+    .btn-secondary:hover {
+      background: #cbd5e0;
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+      color: white;
+    }
+    
+    .toggle-switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .switch {
+      position: relative;
+      width: 50px;
+      height: 24px;
+      background: #cbd5e0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .switch.active {
+      background: #48bb78;
+    }
+    
+    .switch-handle {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .switch.active .switch-handle {
+      transform: translateX(26px);
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+      transition: width 0.3s ease;
+      border-radius: 3px;
+    }
+    
+    .recent-activity {
+      max-height: 120px;
+      overflow-y: auto;
+      background: #f7fafc;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    
+    .activity-item {
+      display: flex;
+      align-items: center;
+      padding: 5px 0;
+      font-size: 12px;
+      color: #4a5568;
+    }
+    
+    .activity-dot {
+      width: 6px;
+      height: 6px;
+      background: #48bb78;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .notification {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 12px 16px;
+      background: #48bb78;
+      color: white;
+      border-radius: 6px;
+      font-size: 14px;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .notification.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .notification.error {
+      background: #f56565;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">ðŸŽ¯ JobHunter Agent</div>
+    <div class="subtitle">AI-Powered Job Application System</div>
+  </div>
+  
+  <div class="content">
+    <div class="status-card">
+      <div class="status-number" id="todayApplications">0</div>
+      <div class="status-label">Applications Today</div>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number" id="totalApplications">0</div>
+        <div class="stat-label">Total Applied</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="responseRate">0%</div>
+        <div class="stat-label">Response Rate</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="interviewsScheduled">0</div>
+        <div class="stat-label">Interviews</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="activeJobs">0</div>
+        <div class="stat-label">Active Jobs</div>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button class="btn btn-primary" id="startStopBtn">
+        <span class="loading hidden" id="loadingSpinner"></span>
+        Start Auto Apply
+      </button>
+      <button class="btn btn-secondary" id="viewDashboard">View Dashboard</button>
+      <button class="btn btn-secondary" id="openSettings">Settings</button>
+    </div>
+    
+    <div class="toggle-switch">
+      <span>Smart Filtering</span>
+      <div class="switch" id="smartFilterToggle">
+        <div class="switch-handle"></div>
+      </div>
+    </div>
+    
+    <div class="toggle-switch">
+      <span>Auto Apply Mode</span>
+      <div class="switch" id="autoApplyToggle">
+        <div class="switch-handle"></div>
+      </div>
+    </div>
+    
+    <div class="toggle-switch">
+      <span>Stealth Mode</span>
+      <div class="switch" id="stealthModeToggle">
+        <div class="switch-handle"></div>
+      </div>
+    </div>
+    
+    <div style="margin: 20px 0;">
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: #718096; margin-bottom: 5px;">
+        <span>Daily Progress</span>
+        <span id="progressText">0/50</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+      <h4 style="font-size: 14px; color: #4a5568; margin-bottom: 10px;">Recent Activity</h4>
+      <div class="recent-activity" id="recentActivity">
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <span>System initialized</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="notification" id="notification"></div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
